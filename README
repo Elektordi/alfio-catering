@@ -1,0 +1,4 @@
+Use alf.io mobile app for catering guests control
+
+This is a django rest framework project, nothing fancy.
+Just remember that Android needs an https endpoint, so you cannot test it locally. (without using a https reverse proxy like ngrok)
