@@ -3,24 +3,38 @@ from django.views.static import serve
 import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import permissions
 
 from .serializers import DeviceSerializer, MealSerializer, StatsSerializer, TicketSerializer
 from .models import Device
 from catering.models import Meal, Guest, Registration, Check
 
 
+class ApiKeyAccessPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        try:
+            auth = request.headers.get('Authorization')
+            if not auth or not auth.startswith('ApiKey '):
+                return False
+            auth = auth.split('ApiKey ')[1]
+            request.device = Device.objects.get(key=auth)
+            if request.device:
+                return True
+        except Exception:
+            pass
+        return False
+
+
 class UserDetailsView(APIView):
+    permission_classes = [ApiKeyAccessPermission]
+
     def get(self, request, _format=None):
-        auth = request.headers.get('Authorization')
-        if not auth or not auth.startswith('ApiKey '):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        auth = auth.split('ApiKey ')[1]
-        device = Device.objects.get(key=auth)
-        return Response(DeviceSerializer(device).data)
+        return Response(DeviceSerializer(request.device).data)
 
 
 class EventsView(APIView):
+    permission_classes = [ApiKeyAccessPermission]
+
     def get(self, request, _format=None):
         meals = Meal.objects.all()
         serializer = MealSerializer(meals, many=True)
@@ -28,6 +42,8 @@ class EventsView(APIView):
 
 
 class StatsView(APIView):
+    permission_classes = [ApiKeyAccessPermission]
+
     def get(self, request, pk, _format=None):
         meal = Meal.objects.get(id=pk)
         serializer = StatsSerializer(meal)
@@ -35,6 +51,8 @@ class StatsView(APIView):
 
 
 class CheckView(APIView):
+    permission_classes = [ApiKeyAccessPermission]
+
     def post(self, request, pk, key, _format=None, override=False):
         meal = guest = reg = None
         try:
@@ -69,6 +87,8 @@ class CheckView(APIView):
 
 
 class CheckConfirmView(CheckView):
+    permission_classes = [ApiKeyAccessPermission]
+
     def post(self, request, pk, key, _format=None):
         return super().post(request, pk, key, _format, override=True)
 
