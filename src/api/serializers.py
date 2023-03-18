@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils import timezone
 
 from .models import Device
-from catering.models import Meal
+from catering.models import Meal, Guest, Registration
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -19,8 +19,8 @@ class DeviceSerializer(serializers.ModelSerializer):
 class MealSerializer(serializers.ModelSerializer):
     key = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
-    begin = serializers.SerializerMethodField()
-    end = serializers.SerializerMethodField()
+    begin = serializers.DateTimeField(source="start")
+    end = serializers.DateTimeField()
     timezone = serializers.SerializerMethodField()
     imageUrl = serializers.SerializerMethodField()
 
@@ -34,12 +34,6 @@ class MealSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return "/event/%d" % (obj.id)
 
-    def get_begin(self, obj):
-        return obj.start.isoformat()
-
-    def get_end(self, obj):
-        return obj.end.isoformat()
-
     def get_timezone(self, obj):
         return timezone.get_current_timezone_name()
 
@@ -48,19 +42,27 @@ class MealSerializer(serializers.ModelSerializer):
 
 
 class StatsSerializer(serializers.ModelSerializer):
-    totalAttendees = serializers.SerializerMethodField()
-    checkedIn = serializers.SerializerMethodField()
+    totalAttendees = serializers.IntegerField(source="planned_qty")
+    checkedIn = serializers.IntegerField(source="checked_qty")
     lastUpdate = serializers.SerializerMethodField()
 
     class Meta:
         model = Meal
         fields = ['totalAttendees', 'checkedIn', 'lastUpdate']
 
-    def get_totalAttendees(self, obj):
-        return obj.planned_qty
-
-    def get_checkedIn(self, obj):
-        return obj.checked_qty
-
     def get_lastUpdate(self, _obj):
         return int(timezone.now().timestamp())
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    uuid = serializers.CharField(source='key')
+    status = serializers.SerializerMethodField()
+    fullName = serializers.CharField(source='name')
+    categoryName = serializers.CharField(source='category')
+
+    class Meta:
+        model = Guest
+        fields = ['id', 'uuid', 'status', 'fullName', 'categoryName']
+
+    def get_status(self, _obj):
+        return "OK"

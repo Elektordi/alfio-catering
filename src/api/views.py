@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import DeviceSerializer, MealSerializer, StatsSerializer
+from .serializers import DeviceSerializer, MealSerializer, StatsSerializer, TicketSerializer
 from .models import Device
 from catering.models import Meal, Guest, Registration, Check
 
@@ -35,18 +35,42 @@ class StatsView(APIView):
 
 
 class CheckView(APIView):
-    def post(self, request, pk, key, _format=None):
-        meal = Meal.objects.get(id=pk)
-        guest = Guest.objects.get(key=key)
-        reg = Registration.objects.get(meal=meal, guest=guest)
-        checked = reg.check_set.count()
-        if checked >= reg.qty:
-            if guest.unlimited:
-                return Response({})
+    def post(self, request, pk, key, _format=None, override=False):
+        meal = guest = reg = None
+        try:
+            meal = Meal.objects.get(id=pk)
+            guest = Guest.objects.get(key=key)
+            reg = Registration.objects.get(meal=meal, guest=guest)
+            checked = reg.check_set.count()
+            if checked >= reg.qty and not override:
+                if guest.unlimited:
+                    result = {"status": "MUST_PAY", "message": "Droits illimités. Confirmer dépassement ?", "dueAmount": 1, "currency": "+"}
+                else:
+                    result = {"status": "ALREADY_CHECK_IN", "message": "Droits épuisés."}
             else:
-                return Response({})
-        Check(registration=reg).save()
-        return Response({})
+                Check(registration=reg).save()
+                msg = "%s: %d/%d%s" % (guest.category, checked+1, reg.qty, "+" if guest.unlimited else "")
+                result = {"status": "SUCCESS", "message": msg}
+        except Meal.DoesNotExist:
+            result = {"status": "EVENT_NOT_FOUND", "message": "Créneau inconnu"}
+        except Guest.DoesNotExist:
+            result = {"status": "TICKET_NOT_FOUND", "message": "Ticket inconnu"}
+        except Registration.DoesNotExist:
+            result = {"status": "INVALID_TICKET_STATE", "message": "Ticket invalide pour ce créneau"}
+
+        if guest:
+            guest = TicketSerializer(guest).data
+        else:
+            guest = {}
+
+        if "message" in result:
+            guest["categoryName"] = result["message"]
+        return Response({"ticket": guest, "result": result})
+
+
+class CheckConfirmView(CheckView):
+    def post(self, request, pk, key, _format=None):
+        return super().post(request, pk, key, _format, override=True)
 
 
 api_urls = [
@@ -54,6 +78,7 @@ api_urls = [
     path('events', EventsView.as_view()),
     path('check-in/event/<int:pk>/statistics', StatsView.as_view()),
     path('check-in/event/<int:pk>/ticket/<str:key>', CheckView.as_view()),
+    path('check-in/event/<int:pk>/ticket/<str:key>/confirm-on-site-payment', CheckConfirmView.as_view()),
 ]
 urls = [
     path('admin/api/', include(api_urls)),
