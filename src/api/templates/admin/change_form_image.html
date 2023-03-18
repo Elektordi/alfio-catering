@@ -3,6 +3,6 @@
 {% block after_field_sets %}
     {{ block.super }}
     {% if original %}
-        <p>Enroll:<br>{{ original.enroll_qrcode | safe }}</p>
+        <p>Qrcode:<br>{{ original.qrcode | safe }}</p>
     {% endif %}
 {% endblock %}

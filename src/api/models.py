@@ -14,7 +14,7 @@ class Device(models.Model):
     def __str__(self):
         return self.description
 
-    def enroll_qrcode(self):
+    def qrcode(self):
         url = "%s/alfio" % (settings.BASE_URL)
         data = json.dumps({"apiKey": str(self.key), "baseUrl": url})
         return qrcode.make(data, image_factory=qrcode.image.svg.SvgPathImage).to_string(encoding='unicode')
