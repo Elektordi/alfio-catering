@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%qz_7@%zz5urb^_w&^ll+w%e=*9*uh3o+b6n_2%)-(lpg*y@5!'
+SECRET_KEY = "DO_NOT_USE_THIS_SECRET_KEY_IN_PRODUCTION"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -119,6 +119,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -127,5 +128,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom
 
-BASE_URL = "http://192.168.2.185:8000"
+BASE_URL = "http://192.168.1.123:8000"
+
+# Put custom settings in local_settings.py
+try:
+    from .local_settings import *
+except ImportError:
+    pass
 

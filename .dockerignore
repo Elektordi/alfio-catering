@@ -1,0 +1,7 @@
+**/venv
+**/__pycache__
+**/*.pyc
+src/static
+src/core/local_settings.py
+src/db.sqlite3
+

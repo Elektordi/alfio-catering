@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.views.static import serve
 
-import catering.views
 import api.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('alfio/', include(api.views.urls)),
+    path('static/<path:path>', serve, kwargs={'document_root': settings.STATIC_ROOT}),
 ]
