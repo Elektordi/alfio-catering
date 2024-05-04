@@ -3,7 +3,10 @@ from django.utils import timezone
 from django.urls import reverse, path
 from django.http import HttpResponse
 from django.utils.html import format_html
+from django.shortcuts import redirect
 from urllib.parse import quote
+import qrcode
+import qrcode.image.svg
 
 from .models import Category, Badge
 
@@ -30,7 +33,8 @@ class BadgeAdmin(admin.ModelAdmin):
         messages.add_message(request, messages.WARNING, format_html("<a href=\"{}\">Click here to print badge PDF</a>", quote(print_url)))
 
     def view_print(self, request, object_id, form_url='', extra_context=None):
-        response = HttpResponse(b"TODO", content_type="application/pdf")
+        obj = Badge.objects.get(id=object_id)
+        response = HttpResponse(obj.pdf().write_pdf(), content_type="application/pdf")
         return response
 
     def get_urls(self):
@@ -40,6 +44,13 @@ class BadgeAdmin(admin.ModelAdmin):
 
     #@admin.action(description="Bulk-print selected badges")
     def bulk_print(modeladmin, request, queryset):
-        response = HttpResponse(b"TODO", content_type="application/pdf")
+        docs = []
+        for obj in queryset:
+            docs.append(obj.pdf())
+        if not docs:
+            messages.add_message(request, messages.ERROR, "No pages to print.")
+            return redirect(request.path)
+        doc = docs[0].copy([p for d in docs for p in d.pages])
+        response = HttpResponse(doc.write_pdf(), content_type="application/pdf")
         return response
 
