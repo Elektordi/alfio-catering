@@ -24,4 +24,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('alfio/', include(api.views.urls)),
     path('static/<path:path>', serve, kwargs={'document_root': settings.STATIC_ROOT}),
+    path('media/<path:path>', serve, kwargs={'document_root': settings.MEDIA_ROOT}),
 ]
