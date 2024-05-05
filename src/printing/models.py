@@ -12,11 +12,15 @@ css = CSS(string="""
 	}
     body {
         margin: 0;
+        padding: 0;
         width: 100%;
         height: 100%;
-        background-size: cover;
+        background-size: contain;
+        background-repeat: no-repeat;
     }
     p {
+        margin: 0;
+        padding: 0;
         font-family: arial, sans-serif;
         position: absolute;
         text-align: center;
@@ -24,33 +28,38 @@ css = CSS(string="""
         /*border: 1px solid red;*/
     }
     p.first_name {
-        top: 16cm;
-        left: 4cm;
-        right: 4cm;
-        height: 2cm;
-        font-size: 4em;
+        left: 105mm;
+        right: 0mm;
+        top: 86mm;
+        height: 13mm;
+        font-size: 3em;
+        text-transform: uppercase;
+        font-weight: bold;
     }
     p.last_name {
-        top: 19cm;
-        left: 4cm;
-        right: 4cm;
-        height: 2cm;
-        font-size: 4em;
+        left: 105mm;
+        right: 0mm;
+        top: 99mm;
+        height: 8mm;
+        font-size: 2em;
         text-transform: uppercase;
     }
     p.title {
-        top: 24cm;
-        left: 4cm;
-        right: 4cm;
-        height: 4cm;
+        left: 105mm;
+        right: 0mm;
+        top: 122mm;
+        height: 13mm;
         font-size: 2em;
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
     }
     svg {
         position: absolute;
-        right: 4cm;
-        top: 4cm;
-        width: 2cm;
-        height: 2cm;
+        right: 5mm;
+        top: 12mm;
+        width: 25mm;
+        height: 25mm;
     }
 """)
 
