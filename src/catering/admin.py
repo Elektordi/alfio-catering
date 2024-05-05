@@ -31,5 +31,5 @@ class MealAdmin(admin.ModelAdmin):
     list_display = ["name", "start", "end", "planned_qty", "checked_qty"]
     ordering = ["start"]
     search_fields = ["name"]
-    readonly_fields = ["planned_qty", "checked_qty"]
-    pass
+    #readonly_fields = ["planned_qty", "checked_qty"]
+    readonly_fields = ["checked_qty"]

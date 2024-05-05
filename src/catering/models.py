@@ -43,9 +43,9 @@ class Registration(models.Model):
 
     def save(self, **kwargs):
         super().save(**kwargs)
-        meal = self.meal
-        meal.planned_qty = Registration.objects.filter(meal=self.meal).aggregate(Sum('qty'))['qty__sum']
-        meal.save()
+        #meal = self.meal
+        #meal.planned_qty = Registration.objects.filter(meal=self.meal).aggregate(Sum('qty'))['qty__sum']
+        #meal.save()
 
 
 class Check(models.Model):
