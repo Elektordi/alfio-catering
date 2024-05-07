@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.shortcuts import redirect
 from django.utils import timezone
 from .models import Guest, Meal, Registration
 
@@ -24,6 +25,15 @@ class GuestAdmin(admin.ModelAdmin):
     search_fields = ["name"]
     change_form_template = "admin/change_form_image.html"
     inlines = [RegistrationInline]
+    actions = ["add_all_meals"]
+
+    #@admin.action(description="Add all meals (1 for each)")
+    def add_all_meals(modeladmin, request, queryset):
+        for obj in queryset:
+            for m in Meal.objects.all():
+                Registration.objects.get_or_create(guest=obj, meal=m, defaults={"qty": 1})
+        messages.add_message(request, messages.SUCCESS, "Registred to all meals.")
+        return redirect(request.path)
 
 
 @admin.register(Meal)

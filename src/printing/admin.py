@@ -9,6 +9,7 @@ import qrcode
 import qrcode.image.svg
 
 from .models import Category, Badge
+from catering.models import Guest
 
 
 @admin.register(Category)
@@ -22,10 +23,9 @@ class BadgeAdmin(admin.ModelAdmin):
     list_display = ["first_name", "last_name", "title", "category"]
     ordering = ["first_name"]
     search_fields = ["first_name", "last_name", "title"]
-    readonly_fields = ["key"]
+    readonly_fields = ["key", "catering_guest"]
     list_filter = ["category"]
-    exclude = ["catering_guest"]
-    actions = ["bulk_print"]
+    actions = ["bulk_print", "create_catering"]
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -53,4 +53,23 @@ class BadgeAdmin(admin.ModelAdmin):
         doc = docs[0].copy([p for d in docs for p in d.pages])
         response = HttpResponse(doc.write_pdf(), content_type="application/pdf")
         return response
+
+    #@admin.action(description="Create catering guests")
+    def create_catering(modeladmin, request, queryset):
+        for obj in queryset:
+            name = "%s %s" % (obj.first_name, obj.last_name)
+            if obj.catering_guest:
+                guest = obj.catering_guest
+            else:
+                guest = Guest.objects.filter(name=name).first()
+                if not guest:
+                    guest = Guest(unlimited=False)
+            guest.name = name
+            guest.category = obj.category.name
+            guest.key = obj.key
+            guest.save()
+            obj.catering_guest = guest
+            obj.save()
+        messages.add_message(request, messages.SUCCESS, "Catering created/updated.")
+        return redirect(request.path)
 
