@@ -40,16 +40,16 @@ css = CSS(string="""
         left: 105mm;
         right: 0mm;
         top: 99mm;
-        height: 8mm;
+        height: 18mm;
         font-size: 2em;
         text-transform: uppercase;
     }
     p.title {
         left: 105mm;
         right: 0mm;
-        top: 122mm;
+        top: 123mm;
         height: 13mm;
-        font-size: 2em;
+        font-size: 1.5em;
         color: white;
         font-weight: bold;
         text-transform: uppercase;
