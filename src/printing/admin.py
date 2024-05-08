@@ -20,10 +20,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Badge)
 class BadgeAdmin(admin.ModelAdmin):
-    list_display = ["first_name", "last_name", "title", "category"]
+    list_display = ["first_name", "last_name", "title", "category", "catering_exists", "created_at"]
     ordering = ["first_name"]
     search_fields = ["first_name", "last_name", "title"]
-    readonly_fields = ["key", "catering_guest"]
+    readonly_fields = ["key", "catering_guest", "created_at", "updated_at"]
     list_filter = ["category"]
     actions = ["bulk_print", "create_catering"]
 
@@ -41,6 +41,9 @@ class BadgeAdmin(admin.ModelAdmin):
         return [
             path('<path:object_id>/print/', self.admin_site.admin_view(self.view_print), name="badge_print"),
         ] + super().get_urls()
+
+    def catering_exists(self, obj):
+        return not obj.catering_guest is None
 
     #@admin.action(description="Bulk-print selected badges")
     def bulk_print(modeladmin, request, queryset):

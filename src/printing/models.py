@@ -82,6 +82,8 @@ class Badge(models.Model):
     key = models.UUIDField(default=uuid4, unique=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     catering_guest = models.OneToOneField("catering.Guest", on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = [['first_name', 'last_name']]
