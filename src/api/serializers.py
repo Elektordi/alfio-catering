@@ -1,68 +1,58 @@
 from rest_framework import serializers
 from django.utils import timezone
 
-from .models import Device
 from catering.models import Meal, Guest, Registration
 
 
-class DeviceSerializer(serializers.ModelSerializer):
-    userType = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Device
-        fields = ['description', 'userType']
-
-    def get_userType(self, obj):
-        return "OPERATOR"
-
-
 class MealSerializer(serializers.ModelSerializer):
-    key = serializers.SerializerMethodField()
-    url = serializers.SerializerMethodField()
-    begin = serializers.DateTimeField(source="start")
-    end = serializers.DateTimeField()
-    timezone = serializers.SerializerMethodField()
-    imageUrl = serializers.SerializerMethodField()
+    checked_qty = serializers.ReadOnlyField()
 
     class Meta:
         model = Meal
-        fields = ['name', 'key', 'url', 'begin', 'end', 'timezone', 'imageUrl']
-
-    def get_key(self, obj):
-        return str(obj.id)
-
-    def get_url(self, obj):
-        return "/event/%d" % (obj.id)
-
-    def get_timezone(self, obj):
-        return timezone.get_current_timezone_name()
-
-    def get_imageUrl(self, obj):
-        return "/static/pixel.png"
+        fields = ['id', 'name', 'start', 'end', 'planned_qty', 'checked_qty']
 
 
-class StatsSerializer(serializers.ModelSerializer):
-    totalAttendees = serializers.IntegerField(source="planned_qty")
-    checkedIn = serializers.IntegerField(source="checked_qty")
-    lastUpdate = serializers.SerializerMethodField()
+class RegistrationSerializer(serializers.ModelSerializer):
+    #meal = MealSerializer()
 
     class Meta:
-        model = Meal
-        fields = ['totalAttendees', 'checkedIn', 'lastUpdate']
-
-    def get_lastUpdate(self, _obj):
-        return int(timezone.now().timestamp())
+        model = Registration
+        fields = ['meal', 'qty']
 
 
-class TicketSerializer(serializers.ModelSerializer):
-    uuid = serializers.CharField(source='key')
-    status = serializers.SerializerMethodField()
-    fullName = serializers.CharField(source='name')
-    categoryName = serializers.CharField(source='category')
+class GuestSerializer(serializers.ModelSerializer):
+    registrations = RegistrationSerializer(many=True, source='registration_set')
+
+    def create(self, validated_data):
+        return self.update(Guest(), validated_data)
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            if not type(value) is list:
+                setattr(instance, attr, value)
+
+        if not instance.id:
+            instance.save()
+
+        registrations = {x.meal.id: x for x in instance.registration_set.all()}
+        for l in validated_data['registration_set']:
+            if l['meal'].id in registrations:
+                r = registrations.pop(l['meal'].id)
+            else:
+                r = Registration(guest=instance, meal=l['meal'])
+            if r.qty != l['qty']:
+                r.qty = l['qty']
+                r.save()
+
+        for missing in registrations:
+            r = registrations[missing]
+            r.qty = 0
+            r.save()
+
+        instance.save()
+        return instance
 
     class Meta:
         model = Guest
-        fields = ['id', 'uuid', 'status', 'fullName', 'categoryName']
-
-    def get_status(self, _obj):
-        return "OK"
+        fields = ['id', 'name', 'category', 'key', 'registrations']
+        validators = []

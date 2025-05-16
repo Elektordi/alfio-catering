@@ -9,7 +9,7 @@ class Guest(models.Model):
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=100)
     key = models.UUIDField(default=uuid4, unique=True)
-    unlimited = models.BooleanField()
+    unlimited = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -43,8 +43,8 @@ class Registration(models.Model):
     def __str__(self):
         return "[%s] %s = %d repas" % (self.meal, self.guest, self.qty)
 
-    def save(self, **kwargs):
-        super().save(**kwargs)
+    #def save(self, **kwargs):
+        #super().save(**kwargs)
         #meal = self.meal
         #meal.planned_qty = Registration.objects.filter(meal=self.meal).aggregate(Sum('qty'))['qty__sum']
         #meal.save()

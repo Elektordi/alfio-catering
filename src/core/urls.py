@@ -18,11 +18,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.views.static import serve
 
-import api.views
+from api import api_alfio, api_admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('alfio/', include(api.views.urls)),
+    path('alfio/', include(api_alfio.urls)),
+    path('api/', include(api_admin.urls)),
     path('static/<path:path>', serve, kwargs={'document_root': settings.STATIC_ROOT}),
     path('media/<path:path>', serve, kwargs={'document_root': settings.MEDIA_ROOT}),
 ]
