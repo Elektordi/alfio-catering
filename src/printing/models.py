@@ -5,68 +5,69 @@ import qrcode.image.svg
 from weasyprint import HTML, CSS
 
 
-css = CSS(string="""
-    @page {
-		size: A4;
-		margin: 0;
-	}
-    body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-    p {
-        margin: 0;
-        padding: 0;
-        font-family: arial, sans-serif;
-        position: absolute;
-        text-align: center;
-        overflow: hidden;
-        /*border: 1px solid red;*/
-    }
-    p.first_name {
-        left: 105mm;
-        right: 0mm;
-        top: 86mm;
-        height: 13mm;
-        font-size: 3em;
-        text-transform: uppercase;
-        font-weight: bold;
-    }
-    p.last_name {
-        left: 105mm;
-        right: 0mm;
-        top: 99mm;
-        height: 18mm;
-        font-size: 2em;
-        text-transform: uppercase;
-    }
-    p.title {
-        left: 105mm;
-        right: 0mm;
-        top: 123mm;
-        height: 13mm;
-        font-size: 1.5em;
-        color: white;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-    svg {
-        position: absolute;
-        right: 5mm;
-        top: 12mm;
-        width: 25mm;
-        height: 25mm;
-    }
-""")
+default_css = """
+@page {
+	size: A4;
+	margin: 0;
+}
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+p {
+    margin: 0;
+    padding: 0;
+    font-family: arial, sans-serif;
+    position: absolute;
+    text-align: center;
+    overflow: hidden;
+    /*border: 1px solid red;*/
+}
+p.first_name {
+    left: 105mm;
+    right: 0mm;
+    top: 86mm;
+    height: 13mm;
+    font-size: 3em;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+p.last_name {
+    left: 105mm;
+    right: 0mm;
+    top: 99mm;
+    height: 18mm;
+    font-size: 2em;
+    text-transform: uppercase;
+}
+p.title {
+    left: 105mm;
+    right: 0mm;
+    top: 123mm;
+    height: 13mm;
+    font-size: 1.5em;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+svg {
+    position: absolute;
+    right: 5mm;
+    top: 12mm;
+    width: 25mm;
+    height: 25mm;
+}
+""".strip()
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
     background = models.FileField()
+    css = models.TextField(default=default_css)
 
     class Meta:
         verbose_name_plural = "categories"
@@ -101,4 +102,4 @@ class Badge(models.Model):
             {tag}
         </body>
         """)
-        return html.render(stylesheets=[css])
+        return html.render(stylesheets=[CSS(string=self.category.css)])
