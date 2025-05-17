@@ -31,11 +31,12 @@ class GuestSerializer(serializers.ModelSerializer):
             if not type(value) is list:
                 setattr(instance, attr, value)
 
-        if not instance.id:
-            instance.save()
+        instance.save()
 
         registrations = {x.meal.id: x for x in instance.registration_set.all()}
         for l in validated_data['registration_set']:
+            if l['qty'] == 0:
+                continue
             if l['meal'].id in registrations:
                 r = registrations.pop(l['meal'].id)
             else:
@@ -46,10 +47,12 @@ class GuestSerializer(serializers.ModelSerializer):
 
         for missing in registrations:
             r = registrations[missing]
-            r.qty = 0
-            r.save()
+            if r.check_set.exists():
+                r.qty = 0
+                r.save()
+            else:
+                r.delete()
 
-        instance.save()
         return instance
 
     class Meta:

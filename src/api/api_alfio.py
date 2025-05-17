@@ -60,7 +60,9 @@ class CheckView(APIView):
             guest = Guest.objects.get(key=key)
             reg = Registration.objects.get(meal=meal, guest=guest)
             checked = reg.check_set.count()
-            if checked >= reg.qty and not override:
+            if reg.qty == 0:
+                result = {"status": "INVALID_TICKET_STATE", "message": "Pas de droits pour ce créneau"}
+            elif checked >= reg.qty and not override:
                 if guest.unlimited:
                     result = {"status": "MUST_PAY", "message": "Droits illimités. Confirmer dépassement ?", "dueAmount": 1, "currency": "+"}
                 else:
@@ -74,7 +76,7 @@ class CheckView(APIView):
         except Guest.DoesNotExist:
             result = {"status": "TICKET_NOT_FOUND", "message": "Ticket inconnu"}
         except Registration.DoesNotExist:
-            result = {"status": "INVALID_TICKET_STATE", "message": "Ticket invalide pour ce créneau"}
+            result = {"status": "INVALID_TICKET_STATE", "message": "Pas de droits pour ce créneau"}
 
         if guest:
             guest = TicketSerializer(guest).data
