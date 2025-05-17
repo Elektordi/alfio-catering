@@ -9,8 +9,9 @@ from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ModelViewSet
 
-from .serializers import MealSerializer, GuestSerializer
+from .serializers import MealSerializer, GuestSerializer, BadgeSerializer
 from catering.models import Meal, Guest
+from printing.models import Badge
 
 
 class StrictDjangoModelPermissions(DjangoModelPermissions):
@@ -31,16 +32,15 @@ class MealsViewSet(ModelViewSet):
     serializer_class = MealSerializer
 
 
-class GuestsViewSet(ModelViewSet):
+class SyncModelViewSet(ModelViewSet):
     permission_classes = [StrictDjangoModelPermissions]
-    queryset = Guest.objects.all()
-    serializer_class = GuestSerializer
 
     @action(detail=False, url_path='key/(?P<key>[^/.]+)')
     def key(self, request, key):
+        model = self.get_queryset().model
         try:
-            obj = Guest.objects.get(key=key)
-        except (ValueError, ValidationError, Guest.DoesNotExist):
+            obj = self.get_queryset().get(key=key)
+        except (ValueError, ValidationError, model.DoesNotExist):
             raise Http404("Invalid key")
         serializer = self.get_serializer(obj, many=False)
         return Response(serializer.data)
@@ -49,19 +49,20 @@ class GuestsViewSet(ModelViewSet):
     def sync(self, request):
         if not type(request.data) is list:
             raise ParseError()
+        model = self.get_queryset().model
         out = []
         for entry in request.data:
             try:
                 if "id" in entry:
-                    guest = Guest.objects.get(id=entry['id'])
+                    obj = self.get_queryset().get(id=entry['id'])
                 elif "key" in entry:
-                    guest = Guest.objects.get(key=entry['key'])
+                    obj = self.get_queryset().get(key=entry['key'])
                 else:
-                    guest = None
-            except (ValueError, ValidationError, Guest.DoesNotExist):
-                guest = None
+                    obj = None
+            except (ValueError, ValidationError, model.DoesNotExist):
+                obj = None
 
-            serializer = GuestSerializer(guest, data=entry)
+            serializer = self.get_serializer(obj, data=entry)
             if serializer.is_valid():
                 serializer.save()
                 out.append(serializer.data)
@@ -70,7 +71,18 @@ class GuestsViewSet(ModelViewSet):
         return Response(out)
 
 
+class GuestsViewSet(SyncModelViewSet):
+    queryset = Guest.objects.all()
+    serializer_class = GuestSerializer
+
+
+class BadgesViewSet(SyncModelViewSet):
+    queryset = Badge.objects.all()
+    serializer_class = BadgeSerializer
+
+
 router = DefaultRouter()
 router.register('meals', MealsViewSet, basename='meal')
 router.register('guests', GuestsViewSet, basename='guest')
+router.register('badges', BadgesViewSet, basename='badge')
 urls = router.urls
