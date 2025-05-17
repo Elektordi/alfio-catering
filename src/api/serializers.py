@@ -47,7 +47,7 @@ class GuestSerializer(serializers.ModelSerializer):
 
         for missing in registrations:
             r = registrations[missing]
-            if r.check_set.exists():
+            if r.checks.exists():
                 r.qty = 0
                 r.save()
             else:

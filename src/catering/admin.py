@@ -11,10 +11,10 @@ class RegistrationInline(admin.TabularInline):
     readonly_fields = ["checked_qty", "checks"]
 
     def checked_qty(self, obj):
-        return obj.check_set.count()
+        return obj.checks.count()
 
     def checks(self, obj):
-        return "\n".join([timezone.localtime(x.time).isoformat() for x in obj.check_set.all()])
+        return "\n".join([timezone.localtime(x.time).isoformat() for x in obj.checks.all()])
 
 
 @admin.register(Guest)

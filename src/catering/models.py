@@ -33,8 +33,8 @@ class Meal(models.Model):
 
 
 class Registration(models.Model):
-    guest = models.ForeignKey(Guest, on_delete=models.CASCADE)
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE)
+    guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name="registrations")
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="registrations")
     qty = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
@@ -51,7 +51,7 @@ class Registration(models.Model):
 
 
 class Check(models.Model):
-    registration = models.ForeignKey(Registration, on_delete=models.PROTECT)
+    registration = models.ForeignKey(Registration, on_delete=models.PROTECT, related_name="checks")
     time = models.DateTimeField(auto_now_add=True)
 
     def save(self, **kwargs):

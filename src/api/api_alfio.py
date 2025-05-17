@@ -59,7 +59,7 @@ class CheckView(APIView):
             meal = Meal.objects.get(id=pk)
             guest = Guest.objects.get(key=key)
             reg = Registration.objects.get(meal=meal, guest=guest)
-            checked = reg.check_set.count()
+            checked = reg.checks.count()
             if reg.qty == 0:
                 result = {"status": "INVALID_TICKET_STATE", "message": "Pas de droits pour ce créneau"}
             elif checked >= reg.qty and not override:
