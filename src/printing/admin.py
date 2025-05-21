@@ -25,7 +25,7 @@ class BadgeAdmin(admin.ModelAdmin):
     search_fields = ["first_name", "last_name", "title"]
     readonly_fields = ["key", "catering_guest", "created_at", "updated_at"]
     list_filter = ["category"]
-    actions = ["bulk_print", "create_catering"]
+    actions = ["bulk_print", "bulk_print_labels", "create_catering"]
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -76,3 +76,14 @@ class BadgeAdmin(admin.ModelAdmin):
         messages.add_message(request, messages.SUCCESS, "Catering created/updated.")
         return redirect(request.path)
 
+    #@admin.action(description="Bulk-print labels")
+    def bulk_print_labels(modeladmin, request, queryset):
+        docs = []
+        for obj in queryset:
+            docs.append(obj.label_pdf())
+        if not docs:
+            messages.add_message(request, messages.ERROR, "No pages to print.")
+            return redirect(request.path)
+        doc = docs[0].copy([p for d in docs for p in d.pages])
+        response = HttpResponse(doc.write_pdf(), content_type="application/pdf")
+        return response

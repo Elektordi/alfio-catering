@@ -80,6 +80,7 @@ class Badge(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     title = models.CharField(max_length=100)
+    shirt_size = models.CharField(max_length=10, blank=True)
     key = models.UUIDField(default=uuid4, unique=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     catering_guest = models.OneToOneField("catering.Guest", on_delete=models.SET_NULL, null=True, blank=True)
@@ -103,3 +104,55 @@ class Badge(models.Model):
         </body>
         """)
         return html.render(stylesheets=[CSS(string=self.category.css)])
+
+    def label_pdf(self):
+        css = """
+            @page {
+	            size: A5;
+	            margin: 0;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                background-size: contain;
+                background-repeat: no-repeat;
+            }
+            .name {
+                border: 1px solid black;
+                width: 80%;
+                margin-left: 10%;
+                margin-top: 2cm;
+            }
+            p {
+                font-size: 3em;
+                font-family: arial, sans-serif;
+                text-align: center;
+            }
+            p.last_name {
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            p.category {
+                margin-top: 4cm;
+            }
+            p.title {
+                margin-top: -1cm;
+                font-size: 1em;
+                font-style: italic;
+            }
+        """
+        html = HTML(string=f"""
+        <body>
+            <div class="name">
+                <p class="last_name">{self.last_name}</p>
+                <p class="first_name">{self.first_name}</p>
+            </div>
+            <p class="category">{self.category.name}</p>
+            <p class="title">{self.title}</p>
+            <p class="shirt_size">{self.shirt_size}</p>
+        </body>
+        """)
+        return html.render(stylesheets=[CSS(string=css)])
+
